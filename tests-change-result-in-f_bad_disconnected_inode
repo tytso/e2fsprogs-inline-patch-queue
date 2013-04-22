@@ -1,0 +1,39 @@
+tests: change result in f_bad_disconnected_inode
+
+From: Zheng Liu <wenqing.lz@taobao.com>
+
+In this test, inode flag is some random data, and when we apply inline data
+patch set we should need to handle it.
+
+Signed-off-by: Zheng Liu <wenqing.lz@taobao.com>
+Signed-off-by: Theodore Ts'o <tytso@mit.edu>
+---
+ tests/f_bad_disconnected_inode/expect.1 | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/tests/f_bad_disconnected_inode/expect.1 b/tests/f_bad_disconnected_inode/expect.1
+index 11862f6..9f9b447 100644
+--- a/tests/f_bad_disconnected_inode/expect.1
++++ b/tests/f_bad_disconnected_inode/expect.1
+@@ -2,9 +2,18 @@ Pass 1: Checking inodes, blocks, and sizes
+ Inode 1 has EXTENTS_FL flag set on filesystem without extents support.
+ Clear? yes
+ 
++Inode 14 has INLINE_DATA_FL flag on filesystem without inline data support.
++Clear? yes
++
++Inode 15 has INLINE_DATA_FL flag on filesystem without inline data support.
++Clear? yes
++
+ Inode 15 has EXTENTS_FL flag set on filesystem without extents support.
+ Clear? yes
+ 
++Inode 16 has INLINE_DATA_FL flag on filesystem without inline data support.
++Clear? yes
++
+ Inode 16 has EXTENTS_FL flag set on filesystem without extents support.
+ Clear? yes
+ 
+-- 
+1.7.12.rc0.22.gcdd159b
+

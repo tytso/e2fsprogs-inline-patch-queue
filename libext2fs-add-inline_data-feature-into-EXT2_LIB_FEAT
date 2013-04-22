@@ -1,0 +1,29 @@
+libext2fs: add inline_data feature into EXT2_LIB_FEATURE_INCOMPAT_SUPP
+
+From: Zheng Liu <wenqing.lz@taobao.com>
+
+Let e2fsprogs support inline_data feature.
+
+Signed-off-by: Zheng Liu <wenqing.lz@taobao.com>
+Signed-off-by: Theodore Ts'o <tytso@mit.edu>
+---
+ lib/ext2fs/ext2fs.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/lib/ext2fs/ext2fs.h b/lib/ext2fs/ext2fs.h
+index 912465c..b069a6a 100644
+--- a/lib/ext2fs/ext2fs.h
++++ b/lib/ext2fs/ext2fs.h
+@@ -588,7 +588,8 @@ typedef struct ext2_icount *ext2_icount_t;
+ 					 EXT3_FEATURE_INCOMPAT_EXTENTS|\
+ 					 EXT4_FEATURE_INCOMPAT_FLEX_BG|\
+ 					 EXT4_LIB_INCOMPAT_MMP|\
+-					 EXT4_FEATURE_INCOMPAT_64BIT)
++					 EXT4_FEATURE_INCOMPAT_64BIT|\
++					 EXT4_FEATURE_INCOMPAT_INLINE_DATA)
+ 
+ #define EXT2_LIB_FEATURE_RO_COMPAT_SUPP	(EXT2_FEATURE_RO_COMPAT_SPARSE_SUPER|\
+ 					 EXT4_FEATURE_RO_COMPAT_HUGE_FILE|\
+-- 
+1.7.12.rc0.22.gcdd159b
+

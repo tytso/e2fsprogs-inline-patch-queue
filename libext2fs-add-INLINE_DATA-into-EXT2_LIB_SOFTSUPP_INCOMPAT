@@ -1,0 +1,30 @@
+libext2fs: add INLINE_DATA into EXT2_LIB_SOFTSUPP_INCOMPAT
+
+From: Zheng Liu <wenqing.lz@taobao.com>
+
+EXT4_FEATURE_INCOMPAT_INLINE_DATA flag is added into
+EXT2_LIB_SOFTSUPP_INCOMPAT due to we still need to take a long time to
+test inline_data feature.
+
+Signed-off-by: Zheng Liu <wenqing.lz@taobao.com>
+Signed-off-by: Theodore Ts'o <tytso@mit.edu>
+---
+ lib/ext2fs/ext2fs.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lib/ext2fs/ext2fs.h b/lib/ext2fs/ext2fs.h
+index cd59473..cfb1672 100644
+--- a/lib/ext2fs/ext2fs.h
++++ b/lib/ext2fs/ext2fs.h
+@@ -604,7 +604,7 @@ typedef struct ext2_icount *ext2_icount_t;
+  * These features are only allowed if EXT2_FLAG_SOFTSUPP_FEATURES is passed
+  * to ext2fs_openfs()
+  */
+-#define EXT2_LIB_SOFTSUPP_INCOMPAT	(0)
++#define EXT2_LIB_SOFTSUPP_INCOMPAT	(EXT4_FEATURE_INCOMPAT_INLINE_DATA)
+ #define EXT2_LIB_SOFTSUPP_RO_COMPAT	(EXT4_FEATURE_RO_COMPAT_REPLICA)
+ 
+ 
+-- 
+1.7.12.rc0.22.gcdd159b
+
