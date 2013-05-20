@@ -188,10 +188,10 @@ index 0c0bbcb..4c329d8 100644
 +
  #endif	/* _LINUX_EXT2_FS_H */
 diff --git a/lib/ext2fs/ext2fs.h b/lib/ext2fs/ext2fs.h
-index ea5e467..c25baad 100644
+index 23d2dbe..9787298 100644
 --- a/lib/ext2fs/ext2fs.h
 +++ b/lib/ext2fs/ext2fs.h
-@@ -1346,6 +1346,17 @@ extern errcode_t ext2fs_get_memalign(unsigned long size,
+@@ -1348,6 +1348,17 @@ extern errcode_t ext2fs_get_memalign(unsigned long size,
  
  /* inline_data.c */
  extern int ext2fs_inode_has_inline_data(ext2_filsys fs, ext2_ino_t ino);
@@ -228,7 +228,7 @@ index 3de9278..16299c3 100644
  
  struct ext2fs_numeric_progress_struct {
 diff --git a/lib/ext2fs/inline_data.c b/lib/ext2fs/inline_data.c
-index fcf82b5..c315527 100644
+index fcf82b5..f7eea7d 100644
 --- a/lib/ext2fs/inline_data.c
 +++ b/lib/ext2fs/inline_data.c
 @@ -14,10 +14,60 @@
@@ -267,7 +267,7 @@ index fcf82b5..c315527 100644
 +	(void)ext2fs_ibody_find_ext_attr(fs, inode, &i, &s);
 +
 +	if (!s.not_found) {
-+		data->inline_off = (__u16)((void *)s.here - (void *)inode);
++		data->inline_off = (__u16)((char *)s.here - (char *)inode);
 +		data->inline_size = EXT4_MIN_INLINE_DATA_SIZE +
 +				    s.here->e_value_size;
 +		return 0;
@@ -284,9 +284,9 @@ index fcf82b5..c315527 100644
 +
 +	header = IHDR(inode);
 +	entry = (struct ext2_ext_attr_entry *)
-+			((void *)inode + data->inline_off);
++			((char *)inode + data->inline_off);
 +
-+	return (void *)IFIRST(header) + entry->e_value_offs;
++	return (void *) ((char *)IFIRST(header) + entry->e_value_offs);
 +}
 +
  int ext2fs_inode_has_inline_data(ext2_filsys fs, ext2_ino_t ino)
@@ -354,7 +354,7 @@ index fcf82b5..c315527 100644
 +	if (retval & BLOCK_ABORT)
 +		goto out;
 +
-+	inline_start = (void *)inode->i_block + EXT4_INLINE_DATA_DOTDOT_SIZE;
++	inline_start = (char *)inode->i_block + EXT4_INLINE_DATA_DOTDOT_SIZE;
 +	inline_size = EXT4_MIN_INLINE_DATA_SIZE - EXT4_INLINE_DATA_DOTDOT_SIZE;
 +	retval |= (*func)(fs, inline_start, inline_size, blockcnt++,
 +			 inode, priv_data);
@@ -378,6 +378,3 @@ index fcf82b5..c315527 100644
 +	ext2fs_free_mem(&inode);
 +	return retval & BLOCK_ERROR ? ctx->errcode : 0;
 +}
--- 
-1.7.12.rc0.22.gcdd159b
-
