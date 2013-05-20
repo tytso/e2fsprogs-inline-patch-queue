@@ -35,10 +35,10 @@ index d94dbea..ca39b4b 100644
  }
  
 diff --git a/lib/ext2fs/ext2fs.h b/lib/ext2fs/ext2fs.h
-index aec1ea9..eddb05f 100644
+index 3f5599b..2f96eb8 100644
 --- a/lib/ext2fs/ext2fs.h
 +++ b/lib/ext2fs/ext2fs.h
-@@ -1369,6 +1369,8 @@ extern errcode_t ext2fs_write_inline_data(ext2_filsys fs, ext2_ino_t ino,
+@@ -1371,6 +1371,8 @@ extern errcode_t ext2fs_write_inline_data(ext2_filsys fs, ext2_ino_t ino,
  extern errcode_t ext2fs_try_to_write_inline_data(ext2_filsys fs, ext2_ino_t ino,
  						 const void *buf, unsigned int nbytes,
  						 unsigned int *written);
@@ -48,13 +48,13 @@ index aec1ea9..eddb05f 100644
  /* inode.c */
  extern void ext2fs_free_inode_cache(struct ext2_inode_cache *icache);
 diff --git a/lib/ext2fs/inline_data.c b/lib/ext2fs/inline_data.c
-index 9249b51..313fbcc 100644
+index c099180..5bb5c52 100644
 --- a/lib/ext2fs/inline_data.c
 +++ b/lib/ext2fs/inline_data.c
 @@ -37,6 +37,8 @@ static errcode_t ext2fs_inline_data_destory_data(ext2_filsys fs, ext2_ino_t ino,
  static errcode_t ext2fs_create_inline_data(ext2_filsys fs,
  					   struct ext2_inode_large *inode,
- 					   int len);
+ 					   unsigned int len);
 +static int do_search_dir(ext2_filsys fs, void *start, int size,
 +			 const char *name, size_t len);
  
@@ -154,6 +154,3 @@ index 9249b51..313fbcc 100644
  int ext2fs_inode_has_inline_data(ext2_filsys fs, ext2_ino_t ino)
  {
  	struct ext2_inode inode;
--- 
-1.7.12.rc0.22.gcdd159b
-

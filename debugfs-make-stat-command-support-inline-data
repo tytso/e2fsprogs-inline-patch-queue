@@ -141,7 +141,7 @@ index 4a40c8c..965b681 100644
  		if (!s->here->e_value_block && s->here->e_value_size) {
  			char *first_val = (char *) s->base + min_offs;
 diff --git a/lib/ext2fs/inline_data.c b/lib/ext2fs/inline_data.c
-index c315527..948219f 100644
+index f7eea7d..209a203 100644
 --- a/lib/ext2fs/inline_data.c
 +++ b/lib/ext2fs/inline_data.c
 @@ -25,6 +25,17 @@ static int ext2fs_iget_extra_inode(ext2_filsys fs, struct ext2_inode_large *inod
@@ -149,21 +149,21 @@ index c315527..948219f 100644
  static void *ext2fs_get_inline_xattr_pos(struct ext2_inode_large *inode,
  					 struct inline_data *data);
 +static void ext2fs_inline_data_finish_convert(ext2_filsys fs, ext2_ino_t ino,
-+					      char *target, void *buf,
++					      char *target, char *buf,
 +					      int inline_size);
-+static void ext2fs_update_final_de(ext2_filsys fs, void *de_buf,
++static void ext2fs_update_final_de(ext2_filsys fs, char *de_buf,
 +				   int old_size, int new_size);
 +static errcode_t ext2fs_inline_data_destory_data(ext2_filsys fs, ext2_ino_t ino,
 +					   struct ext2_inode_large *inode,
 +					   struct inline_data *data);
 +static errcode_t ext2fs_create_inline_data(ext2_filsys fs,
 +					   struct ext2_inode_large *inode,
-+					   int len);
++					   unsigned int len);
  
  static int ext2fs_iget_extra_inode(ext2_filsys fs, struct ext2_inode_large *inode,
  				    struct inline_data *data)
 @@ -68,6 +79,46 @@ static void *ext2fs_get_inline_xattr_pos(struct ext2_inode_large *inode,
- 	return (void *)IFIRST(header) + entry->e_value_offs;
+ 	return (void *) ((char *)IFIRST(header) + entry->e_value_offs);
  }
  
 +static errcode_t ext2fs_inline_data_destory_data(ext2_filsys fs, ext2_ino_t ino,
@@ -243,12 +243,12 @@ index c315527..948219f 100644
 +	return inline_size;
 +}
 +
-+static void ext2fs_update_final_de(ext2_filsys fs, void *de_buf,
++static void ext2fs_update_final_de(ext2_filsys fs, char *de_buf,
 +				   int old_size, int new_size)
 +{
 +	struct ext2_dir_entry *de, *prev_de;
-+	void *limit;
-+	int de_len;
++	char *limit;
++	unsigned int de_len;
 +
 +	de = (struct ext2_dir_entry *)de_buf;
 +	if (old_size) {
@@ -269,7 +269,7 @@ index c315527..948219f 100644
 +}
 +
 +static void ext2fs_inline_data_finish_convert(ext2_filsys fs, ext2_ino_t ino,
-+					      char *target, void *buf,
++					      char *target, char *buf,
 +					      int inline_size)
 +{
 +	struct ext2_dir_entry *de;
@@ -305,7 +305,7 @@ index c315527..948219f 100644
 +	de = (struct ext2_dir_entry *)(target +
 +				       EXT2_DIR_REC_LEN(1) +
 +				       EXT2_DIR_REC_LEN(2));
-+	header_size = (void *)de - (void *)target;
++	header_size = (char *)de - (char *)target;
 +
 +	memcpy((void *)de, buf + EXT4_INLINE_DATA_DOTDOT_SIZE,
 +		inline_size - EXT4_INLINE_DATA_DOTDOT_SIZE);
@@ -341,7 +341,7 @@ index c315527..948219f 100644
 +	void *inline_start;
 +	char *backup_buf;
 +	char *blk_buf;
-+	int inline_size;
++	unsigned int inline_size;
 +	int i, limit, r;
 +
 +	EXT2_CHECK_MAGIC(fs, EXT2_ET_MAGIC_EXT2FS_FILSYS);
@@ -446,7 +446,7 @@ index c315527..948219f 100644
 +
 +static errcode_t ext2fs_create_inline_data(ext2_filsys fs,
 +					   struct ext2_inode_large *inode,
-+					   int len)
++					   unsigned int len)
 +{
 +	struct ext2_ext_attr_ibody_header *header;
 +	struct ext2_ext_attr_search s = {
@@ -491,7 +491,7 @@ index c315527..948219f 100644
 +	struct ext2_inode_large *inode;
 +	struct ext2_dir_entry *de;
 +	errcode_t retval = 0;
-+	int inline_size = EXT4_MIN_INLINE_DATA_SIZE;
++	unsigned int inline_size = EXT4_MIN_INLINE_DATA_SIZE;
 +	__u32 t = fs->now ? fs->now : time(NULL);
 +
 +	retval = ext2fs_get_mem(EXT2_INODE_SIZE(fs->super), &inode);
@@ -509,7 +509,7 @@ index c315527..948219f 100644
 +	de = (struct ext2_dir_entry *)inode->i_block;
 +	de->inode = parent;
 +
-+	de = (struct ext2_dir_entry *)((void *)de + EXT4_INLINE_DATA_DOTDOT_SIZE);
++	de = (struct ext2_dir_entry *)((char *)de + EXT4_INLINE_DATA_DOTDOT_SIZE);
 +	de->inode = 0;
 +	de->rec_len = inline_size - EXT4_INLINE_DATA_DOTDOT_SIZE;
 +
