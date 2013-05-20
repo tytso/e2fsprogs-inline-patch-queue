@@ -1,4 +1,4 @@
-# BASE 07bcd90f3dab9a7907081dc455e089f92b9dd0a1
+# BASE 4cf7a7014a209b82aada9b5d83ecdb9b07e60a1a
 libext2fs-add-INLINE_DATA-into-EXT2_LIB_SOFTSUPP_INCOMPAT
 libext2fs-add-function-to-check-inline_data-flag-for-an-inode
 libext2fs-add-functions-to-operate-on-extended-attributes
