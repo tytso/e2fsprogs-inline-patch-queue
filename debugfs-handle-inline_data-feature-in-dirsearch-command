@@ -10,8 +10,9 @@ Signed-off-by: Theodore Ts'o <tytso@mit.edu>
 ---
  debugfs/htree.c          |  7 ++++
  lib/ext2fs/ext2fs.h      |  2 ++
+ lib/ext2fs/fileio.c      |  2 +-
  lib/ext2fs/inline_data.c | 89 ++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 98 insertions(+)
+ 4 files changed, 99 insertions(+), 1 deletion(-)
 
 diff --git a/debugfs/htree.c b/debugfs/htree.c
 index d94dbea..ca39b4b 100644
@@ -47,15 +48,28 @@ index 3f5599b..2f96eb8 100644
  
  /* inode.c */
  extern void ext2fs_free_inode_cache(struct ext2_inode_cache *icache);
+diff --git a/lib/ext2fs/fileio.c b/lib/ext2fs/fileio.c
+index d751666..be914c6 100644
+--- a/lib/ext2fs/fileio.c
++++ b/lib/ext2fs/fileio.c
+@@ -159,7 +159,7 @@ errcode_t ext2fs_file_flush(ext2_file_t file)
+ static errcode_t sync_buffer_position(ext2_file_t file)
+ {
+ 	blk_t	b;
+-	errcode_t	retval;
++	errcode_t	retval = 0;
+ 
+ 	b = file->pos / file->fs->blocksize;
+ 	if (b != file->blockno) {
 diff --git a/lib/ext2fs/inline_data.c b/lib/ext2fs/inline_data.c
-index c099180..5bb5c52 100644
+index f1ca8b2..c881afc 100644
 --- a/lib/ext2fs/inline_data.c
 +++ b/lib/ext2fs/inline_data.c
-@@ -37,6 +37,8 @@ static errcode_t ext2fs_inline_data_destory_data(ext2_filsys fs, ext2_ino_t ino,
+@@ -38,6 +38,8 @@ static errcode_t ext2fs_inline_data_destory_data(ext2_filsys fs, ext2_ino_t ino,
  static errcode_t ext2fs_create_inline_data(ext2_filsys fs,
  					   struct ext2_inode_large *inode,
  					   unsigned int len);
-+static int do_search_dir(ext2_filsys fs, void *start, int size,
++static int do_search_dir(ext2_filsys fs, char *start, unsigned int size,
 +			 const char *name, size_t len);
  
  static int ext2fs_iget_extra_inode(ext2_filsys fs, struct ext2_inode_large *inode,
@@ -64,7 +78,7 @@ index c099180..5bb5c52 100644
  	return 0;
  }
  
-+static int do_search_dir(ext2_filsys fs, void *start, int size,
++static int do_search_dir(ext2_filsys fs, char *start, unsigned int size,
 +			 const char *name, size_t len)
 +{
 +	struct ext2_dir_entry *de;
@@ -99,8 +113,8 @@ index c099180..5bb5c52 100644
 +	struct inline_data data;
 +	unsigned int offset = 0;
 +	unsigned int rec_len;
-+	void *inline_start;
-+	int inline_size;
++	char *inline_start;
++	unsigned int inline_size;
 +	errcode_t retval = 0;
 +
 +	retval = ext2fs_get_mem(EXT2_INODE_SIZE(fs->super), &inode);
@@ -117,7 +131,7 @@ index c099180..5bb5c52 100644
 +	dirent.name_len = 1;
 +	ext2fs_set_rec_len(fs, EXT2_DIR_REC_LEN(2), &dirent);
 +	dirent.name[0] = '.';
-+	retval = do_search_dir(fs, (void *)&dirent, dirent.rec_len, name, namelen);
++	retval = do_search_dir(fs, (char *)&dirent, dirent.rec_len, name, namelen);
 +	if (retval)
 +		goto out;
 +
@@ -126,11 +140,11 @@ index c099180..5bb5c52 100644
 +	ext2fs_set_rec_len(fs, EXT2_DIR_REC_LEN(3), &dirent);
 +	dirent.name[0] = '.';
 +	dirent.name[1] = '.';
-+	retval = do_search_dir(fs, (void *)&dirent, dirent.rec_len, name, namelen);
++	retval = do_search_dir(fs, (char *)&dirent, dirent.rec_len, name, namelen);
 +	if (retval)
 +		goto out;
 +
-+	inline_start = (void *)inode->i_block + EXT4_INLINE_DATA_DOTDOT_SIZE;
++	inline_start = (char *)inode->i_block + EXT4_INLINE_DATA_DOTDOT_SIZE;
 +	inline_size = EXT4_MIN_INLINE_DATA_SIZE - EXT4_INLINE_DATA_DOTDOT_SIZE;
 +	retval = do_search_dir(fs, inline_start, inline_size, name, namelen);
 +	if (retval)
