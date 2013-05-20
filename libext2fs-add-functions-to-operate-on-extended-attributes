@@ -10,11 +10,11 @@ Signed-off-by: Theodore Ts'o <tytso@mit.edu>
 ---
  lib/ext2fs/ext2_ext_attr.h |  30 ++++++++
  lib/ext2fs/ext2fs.h        |  13 ++++
- lib/ext2fs/ext_attr.c      | 169 +++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 212 insertions(+)
+ lib/ext2fs/ext_attr.c      | 170 +++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 213 insertions(+)
 
 diff --git a/lib/ext2fs/ext2_ext_attr.h b/lib/ext2fs/ext2_ext_attr.h
-index bbb0aaa..de60097 100644
+index bbb0aaa..900c2c5 100644
 --- a/lib/ext2fs/ext2_ext_attr.h
 +++ b/lib/ext2fs/ext2_ext_attr.h
 @@ -15,6 +15,10 @@
@@ -45,7 +45,7 @@ index bbb0aaa..de60097 100644
  
 +#define IHDR(inode) \
 +	((struct ext2_ext_attr_ibody_header *) \
-+		((void *)inode + \
++		((char *)inode + \
 +		EXT2_GOOD_OLD_INODE_SIZE + \
 +		inode->i_extra_isize))
 +#define IFIRST(hdr) ((struct ext2_ext_attr_entry *)((hdr)+1))
@@ -69,10 +69,10 @@ index bbb0aaa..de60097 100644
  # ifdef CONFIG_EXT2_FS_EXT_ATTR
  extern int ext2_get_ext_attr(struct inode *, const char *, char *, size_t, int);
 diff --git a/lib/ext2fs/ext2fs.h b/lib/ext2fs/ext2fs.h
-index 7089e21..ea5e467 100644
+index 3346c00..23d2dbe 100644
 --- a/lib/ext2fs/ext2fs.h
 +++ b/lib/ext2fs/ext2fs.h
-@@ -1134,6 +1134,19 @@ extern errcode_t ext2fs_adjust_ea_refcount3(ext2_filsys fs, blk64_t blk,
+@@ -1136,6 +1136,19 @@ extern errcode_t ext2fs_adjust_ea_refcount3(ext2_filsys fs, blk64_t blk,
  					   char *block_buf,
  					   int adjust, __u32 *newcount,
  					   ext2_ino_t inum);
@@ -93,10 +93,10 @@ index 7089e21..ea5e467 100644
  /* extent.c */
  extern errcode_t ext2fs_extent_header_verify(void *ptr, int size);
 diff --git a/lib/ext2fs/ext_attr.c b/lib/ext2fs/ext_attr.c
-index 9649a14..26f4fd9 100644
+index 9649a14..4a40c8c 100644
 --- a/lib/ext2fs/ext_attr.c
 +++ b/lib/ext2fs/ext_attr.c
-@@ -186,3 +186,172 @@ errcode_t ext2fs_adjust_ea_refcount(ext2_filsys fs, blk_t blk,
+@@ -186,3 +186,173 @@ errcode_t ext2fs_adjust_ea_refcount(ext2_filsys fs, blk_t blk,
  	return ext2fs_adjust_ea_refcount2(fs, blk, block_buf, adjust,
  					  newcount);
  }
@@ -139,10 +139,10 @@ index 9649a14..26f4fd9 100644
 +	header = IHDR(inode);
 +	s->base = s->first = IFIRST(header);
 +	s->here = s->first;
-+	s->end = (void *)inode + EXT2_INODE_SIZE(fs->super);
++	s->end = (char *)inode + EXT2_INODE_SIZE(fs->super);
 +	error = ext2fs_find_entry_ext_attr(&s->here, i->name_index,
-+					   i->name, s->end -
-+					   (void *)s->base, 0);
++					   i->name, (char *) s->end -
++					   (char *)s->base, 0);
 +	s->not_found = error;
 +	return 0;
 +}
@@ -160,16 +160,16 @@ index 9649a14..26f4fd9 100644
 +
 +	header = IHDR(inode);
 +	entry = IFIRST(header);
-+	end = (void *)inode + EXT2_INODE_SIZE(fs->super);
++	end = (char *)inode + EXT2_INODE_SIZE(fs->super);
 +	error = ext2fs_find_entry_ext_attr(&entry, name_index, name,
-+					   end - (void *)entry, 0);
++					   (char *) end - (char *)entry, 0);
 +	if (error)
 +		return error;
 +	size = ext2fs_le32_to_cpu(entry->e_value_size);
 +	if (buffer) {
 +		if (size > buf_len)
 +			return error;
-+		memcpy(buffer, (void *)IFIRST(header) +
++		memcpy(buffer, (char *)IFIRST(header) +
 +		       ext2fs_le16_to_cpu(entry->e_value_offs), size);
 +	}
 +	error = size;
@@ -181,7 +181,8 @@ index 9649a14..26f4fd9 100644
 +				    struct ext2_ext_attr_search *s)
 +{
 +	struct ext2_ext_attr_entry *last;
-+	size_t freesize, min_offs = s->end - s->base, name_len = strlen(i->name);
++	size_t freesize, min_offs = (char *) s->end - (char *) s->base;
++	size_t name_len = strlen(i->name);
 +
 +	last = s->first;
 +	for (; !EXT2_EXT_IS_LAST_ENTRY(last); last = EXT2_EXT_ATTR_NEXT(last)) {
@@ -191,7 +192,7 @@ index 9649a14..26f4fd9 100644
 +				min_offs = offs;
 +		}
 +	}
-+	freesize = min_offs - ((void *)last - s->base) - sizeof(__u32);
++	freesize = min_offs - ((char *)last - (char *) s->base) - sizeof(__u32);
 +	if (!s->not_found) {
 +		if (!s->here->e_value_block && s->here->e_value_size) {
 +			size_t size = ext2fs_le32_to_cpu(s->here->e_value_size);
@@ -207,8 +208,8 @@ index 9649a14..26f4fd9 100644
 +	}
 +	if (i->value && s->not_found) {
 +		size_t size = EXT2_EXT_ATTR_LEN(name_len);
-+		size_t rest = (void *)last - (void *)s->here + sizeof(__u32);
-+		memmove((void *)s->here + size, s->here, rest);
++		size_t rest = (char *)last - (char *)s->here + sizeof(__u32);
++		memmove((char *)s->here + size, s->here, rest);
 +		memset(s->here, 0, size);
 +		s->here->e_name_index = i->name_index;
 +		s->here->e_name_len = name_len;
@@ -216,9 +217,9 @@ index 9649a14..26f4fd9 100644
 +		       EXT2_EXT_ATTR_NAME(i), name_len);
 +	} else {
 +		if (!s->here->e_value_block && s->here->e_value_size) {
-+			void *first_val = s->base + min_offs;
++			char *first_val = (char *) s->base + min_offs;
 +			size_t offs = ext2fs_le16_to_cpu(s->here->e_value_offs);
-+			void *val = s->base + offs;
++			char *val = (char *) s->base + offs;
 +			size_t size = EXT2_EXT_ATTR_SIZE(
 +				ext2fs_le32_to_cpu(s->here->e_value_size));
 +
@@ -250,8 +251,8 @@ index 9649a14..26f4fd9 100644
 +		if (!i->value) {
 +			size_t size = EXT2_EXT_ATTR_LEN(name_len);
 +			last = (struct ext2_ext_attr_entry *)last - size;
-+			memmove(s->here, (void *)s->here + size,
-+				(void *)last - (void *)s->here + sizeof(__u32));
++			memmove(s->here, (char *)s->here + size,
++				(char *)last - (char *)s->here + sizeof(__u32));
 +			memset(last, 0, size);
 +		}
 +	}
@@ -260,7 +261,7 @@ index 9649a14..26f4fd9 100644
 +		s->here->e_value_size = ext2fs_cpu_to_le32(i->value_len);
 +		if (i->value_len) {
 +			size_t size = EXT2_EXT_ATTR_SIZE(i->value_len);
-+			void *val = s->base + min_offs - size;
++			char *val = (char *) s->base + min_offs - size;
 +			s->here->e_value_offs = ext2fs_cpu_to_le16(min_offs - size);
 +			memset(val + size - EXT2_EXT_ATTR_PAD, 0,
 +				EXT2_EXT_ATTR_PAD);
@@ -269,6 +270,3 @@ index 9649a14..26f4fd9 100644
 +	}
 +	return 0;
 +}
--- 
-1.7.12.rc0.22.gcdd159b
-

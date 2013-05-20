@@ -9,10 +9,10 @@ Signed-off-by: Theodore Ts'o <tytso@mit.edu>
  lib/ext2fs/expanddir.c   |  18 ++-
  lib/ext2fs/ext2fs.h      |   5 +
  lib/ext2fs/ext2fsP.h     |  11 ++
- lib/ext2fs/ext_attr.c    |   6 +-
+ lib/ext2fs/ext_attr.c    |   3 +-
  lib/ext2fs/inline_data.c | 366 +++++++++++++++++++++++++++++++++++++++++++++++
  lib/ext2fs/mkdir.c       |  19 ++-
- 7 files changed, 426 insertions(+), 12 deletions(-)
+ 7 files changed, 424 insertions(+), 11 deletions(-)
 
 diff --git a/debugfs/debugfs.c b/debugfs/debugfs.c
 index 969dbe0..bf0ddf1 100644
@@ -82,10 +82,10 @@ index 22558d6..b5e790b 100644
  				       0, expand_dir_proc, &es);
  
 diff --git a/lib/ext2fs/ext2fs.h b/lib/ext2fs/ext2fs.h
-index c25baad..949d2c4 100644
+index 9787298..d29c763 100644
 --- a/lib/ext2fs/ext2fs.h
 +++ b/lib/ext2fs/ext2fs.h
-@@ -1346,6 +1346,7 @@ extern errcode_t ext2fs_get_memalign(unsigned long size,
+@@ -1348,6 +1348,7 @@ extern errcode_t ext2fs_get_memalign(unsigned long size,
  
  /* inline_data.c */
  extern int ext2fs_inode_has_inline_data(ext2_filsys fs, ext2_ino_t ino);
@@ -93,7 +93,7 @@ index c25baad..949d2c4 100644
  extern int ext2fs_inline_data_iterate(ext2_filsys fs,
  				      ext2_ino_t ino,
  				      int flags,
-@@ -1357,6 +1358,10 @@ extern int ext2fs_inline_data_iterate(ext2_filsys fs,
+@@ -1359,6 +1360,10 @@ extern int ext2fs_inline_data_iterate(ext2_filsys fs,
  						  struct ext2_inode_large *inode,
  						  void *priv_data),
  				      void *priv_data);
@@ -127,20 +127,10 @@ index 16299c3..1da44ce 100644
   */
  struct ext2_inode_cache {
 diff --git a/lib/ext2fs/ext_attr.c b/lib/ext2fs/ext_attr.c
-index 26f4fd9..ec363e5 100644
+index 4a40c8c..965b681 100644
 --- a/lib/ext2fs/ext_attr.c
 +++ b/lib/ext2fs/ext_attr.c
-@@ -267,7 +267,8 @@ errcode_t ext2fs_set_entry_ext_attr(struct ext2_ext_attr_info *i,
- 				    struct ext2_ext_attr_search *s)
- {
- 	struct ext2_ext_attr_entry *last;
--	size_t freesize, min_offs = s->end - s->base, name_len = strlen(i->name);
-+	size_t freesize, min_offs = s->end - s->base;
-+	size_t name_len = strlen(i->name);
- 
- 	last = s->first;
- 	for (; !EXT2_EXT_IS_LAST_ENTRY(last); last = EXT2_EXT_ATTR_NEXT(last)) {
-@@ -298,8 +299,7 @@ errcode_t ext2fs_set_entry_ext_attr(struct ext2_ext_attr_info *i,
+@@ -299,8 +299,7 @@ errcode_t ext2fs_set_entry_ext_attr(struct ext2_ext_attr_info *i,
  		memset(s->here, 0, size);
  		s->here->e_name_index = i->name_index;
  		s->here->e_name_len = name_len;
@@ -149,7 +139,7 @@ index 26f4fd9..ec363e5 100644
 +		memcpy(EXT2_EXT_ATTR_NAME(s->here), i->name, name_len);
  	} else {
  		if (!s->here->e_value_block && s->here->e_value_size) {
- 			void *first_val = s->base + min_offs;
+ 			char *first_val = (char *) s->base + min_offs;
 diff --git a/lib/ext2fs/inline_data.c b/lib/ext2fs/inline_data.c
 index c315527..948219f 100644
 --- a/lib/ext2fs/inline_data.c
@@ -603,6 +593,3 @@ index 4a85439..93403c8 100644
  	ext2fs_inode_alloc_stats2(fs, ino, +1, 1);
  
  cleanup:
--- 
-1.7.12.rc0.22.gcdd159b
-
