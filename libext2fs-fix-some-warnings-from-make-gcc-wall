@@ -8,8 +8,8 @@ Signed-off-by: Zheng Liu <wenqing.lz@taobao.com>
 Signed-off-by: Theodore Ts'o <tytso@mit.edu>
 ---
  lib/ext2fs/ext2fs.h      |  2 +-
- lib/ext2fs/inline_data.c | 30 ++++++++++++++++--------------
- 2 files changed, 17 insertions(+), 15 deletions(-)
+ lib/ext2fs/inline_data.c | 24 ++++++++++++++----------
+ 2 files changed, 15 insertions(+), 11 deletions(-)
 
 diff --git a/lib/ext2fs/ext2fs.h b/lib/ext2fs/ext2fs.h
 index 15e8aa7..077c2a6 100644
@@ -25,19 +25,10 @@ index 15e8aa7..077c2a6 100644
  				      ext2_ino_t ino,
  				      int flags,
 diff --git a/lib/ext2fs/inline_data.c b/lib/ext2fs/inline_data.c
-index 85450f5..9099ac2 100644
+index ae43d00..9f173a2 100644
 --- a/lib/ext2fs/inline_data.c
 +++ b/lib/ext2fs/inline_data.c
-@@ -155,8 +155,6 @@ errcode_t ext2fs_inline_data_dirsearch(ext2_filsys fs, ext2_ino_t ino,
- 	struct ext2_inode_large *inode;
- 	struct ext2_dir_entry dirent;
- 	struct inline_data data;
--	unsigned int offset = 0;
--	unsigned int rec_len;
- 	char *inline_start;
- 	unsigned int inline_size;
- 	errcode_t retval = 0;
-@@ -221,12 +219,12 @@ int ext2fs_inode_has_inline_data(ext2_filsys fs, ext2_ino_t ino)
+@@ -219,12 +219,12 @@ int ext2fs_inode_has_inline_data(ext2_filsys fs, ext2_ino_t ino)
  	return (inode.i_flags & EXT4_INLINE_DATA_FL);
  }
  
@@ -52,29 +43,18 @@ index 85450f5..9099ac2 100644
  
  	if (!ext2fs_inode_has_inline_data(fs, ino))
  		return 0;
-@@ -485,7 +483,12 @@ errcode_t ext2fs_punch_inline_data(ext2_filsys fs, ext2_ino_t ino,
- 	struct inline_data data;
- 	errcode_t retval = 0;
+@@ -485,6 +485,10 @@ errcode_t ext2fs_punch_inline_data(ext2_filsys fs, ext2_ino_t ino,
  	void *value;
--	int inline_size, value_len;
-+	unsigned int inline_size;
-+	int value_len;
-+
+ 	unsigned int inline_size, value_len;
+ 
 +	/* punching hole for inline_data is not supported */
 +	if (end != ~0U)
 +		return EXT2_ET_OP_NOT_SUPPORTED;
- 
++
  	retval = ext2fs_get_mem(EXT2_INODE_SIZE(fs->super), &inode);
  	if (retval)
-@@ -505,7 +508,6 @@ errcode_t ext2fs_punch_inline_data(ext2_filsys fs, ext2_ino_t ino,
- 		goto out;
- 
- 	if (start < inline_size) {
--		struct ext2_ext_attr_ibody_header *header;
- 		struct ext2_ext_attr_search s = {
- 			.not_found = -1,
- 		};
-@@ -798,7 +800,7 @@ static unsigned int ext2fs_get_max_inline_size(ext2_filsys fs,
+ 		return retval;
+@@ -795,7 +799,7 @@ static unsigned int ext2fs_get_max_inline_size(ext2_filsys fs,
  	struct ext2_ext_attr_ibody_header *header;
  	struct inline_data data;
  	errcode_t retval = 0;
@@ -83,7 +63,7 @@ index 85450f5..9099ac2 100644
  
  	min_offs = EXT2_INODE_SIZE(fs->super) -
  		   EXT2_GOOD_OLD_INODE_SIZE -
-@@ -816,7 +818,7 @@ static unsigned int ext2fs_get_max_inline_size(ext2_filsys fs,
+@@ -813,7 +817,7 @@ static unsigned int ext2fs_get_max_inline_size(ext2_filsys fs,
  				min_offs = offs;
  		}
  	}
@@ -92,7 +72,7 @@ index 85450f5..9099ac2 100644
  		((char *)entry - (char *)IFIRST(header)) - sizeof(__u32);
  
  	/*
-@@ -830,19 +832,19 @@ static unsigned int ext2fs_get_max_inline_size(ext2_filsys fs,
+@@ -827,19 +831,19 @@ static unsigned int ext2fs_get_max_inline_size(ext2_filsys fs,
  	if (data.inline_off) {
  		entry = (struct ext2_ext_attr_entry *)
  			((char *)inode + data.inline_off);

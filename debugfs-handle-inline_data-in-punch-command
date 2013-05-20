@@ -8,15 +8,15 @@ Signed-off-by: Zheng Liu <wenqing.lz@taobao.com>
 Signed-off-by: Theodore Ts'o <tytso@mit.edu>
 ---
  lib/ext2fs/ext2fs.h      |  2 ++
- lib/ext2fs/inline_data.c | 80 ++++++++++++++++++++++++++++++++++++++++++++++++
+ lib/ext2fs/inline_data.c | 81 ++++++++++++++++++++++++++++++++++++++++++++++--
  lib/ext2fs/punch.c       |  4 ++-
- 3 files changed, 85 insertions(+), 1 deletion(-)
+ 3 files changed, 84 insertions(+), 3 deletions(-)
 
 diff --git a/lib/ext2fs/ext2fs.h b/lib/ext2fs/ext2fs.h
-index eddb05f..912465c 100644
+index 2f96eb8..8fea664 100644
 --- a/lib/ext2fs/ext2fs.h
 +++ b/lib/ext2fs/ext2fs.h
-@@ -1371,6 +1371,8 @@ extern errcode_t ext2fs_try_to_write_inline_data(ext2_filsys fs, ext2_ino_t ino,
+@@ -1373,6 +1373,8 @@ extern errcode_t ext2fs_try_to_write_inline_data(ext2_filsys fs, ext2_ino_t ino,
  						 unsigned int *written);
  extern errcode_t ext2fs_inline_data_dirsearch(ext2_filsys fs, ext2_ino_t ino,
  					      const char *name, size_t namelen);
@@ -26,10 +26,19 @@ index eddb05f..912465c 100644
  /* inode.c */
  extern void ext2fs_free_inode_cache(struct ext2_inode_cache *icache);
 diff --git a/lib/ext2fs/inline_data.c b/lib/ext2fs/inline_data.c
-index 313fbcc..7706747 100644
+index c881afc..8ac0a58 100644
 --- a/lib/ext2fs/inline_data.c
 +++ b/lib/ext2fs/inline_data.c
-@@ -477,6 +477,86 @@ err:
+@@ -155,8 +155,6 @@ errcode_t ext2fs_inline_data_dirsearch(ext2_filsys fs, ext2_ino_t ino,
+ 	struct ext2_inode_large *inode;
+ 	struct ext2_dir_entry dirent;
+ 	struct inline_data data;
+-	unsigned int offset = 0;
+-	unsigned int rec_len;
+ 	char *inline_start;
+ 	unsigned int inline_size;
+ 	errcode_t retval = 0;
+@@ -477,6 +475,85 @@ err:
  	ext2fs_free_mem(&inode);
  	return retval;
  }
@@ -41,7 +50,7 @@ index 313fbcc..7706747 100644
 +	struct inline_data data;
 +	errcode_t retval = 0;
 +	void *value;
-+	int inline_size, value_len;
++	unsigned int inline_size, value_len;
 +
 +	retval = ext2fs_get_mem(EXT2_INODE_SIZE(fs->super), &inode);
 +	if (retval)
@@ -61,7 +70,6 @@ index 313fbcc..7706747 100644
 +		goto out;
 +
 +	if (start < inline_size) {
-+		struct ext2_ext_attr_ibody_header *header;
 +		struct ext2_ext_attr_search s = {
 +			.not_found = -1,
 +		};
@@ -101,7 +109,7 @@ index 313fbcc..7706747 100644
 +	}
 +
 +	if (start < EXT4_MIN_INLINE_DATA_SIZE) {
-+		memset((void *)inode->i_block + start, 0,
++		memset((char *)inode->i_block + start, 0,
 +			EXT4_MIN_INLINE_DATA_SIZE - start);
 +	}
 +
@@ -131,6 +139,3 @@ index b53653a..8de9649 100644
  		retval = ext2fs_punch_extent(fs, ino, inode, start, end);
  	else {
  		blk_t	count;
--- 
-1.7.12.rc0.22.gcdd159b
-
