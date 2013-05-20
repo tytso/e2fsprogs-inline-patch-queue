@@ -10,9 +10,9 @@ Signed-off-by: Theodore Ts'o <tytso@mit.edu>
  lib/ext2fs/ext2fs.h      |   5 +
  lib/ext2fs/ext2fsP.h     |  11 ++
  lib/ext2fs/ext_attr.c    |   3 +-
- lib/ext2fs/inline_data.c | 366 +++++++++++++++++++++++++++++++++++++++++++++++
+ lib/ext2fs/inline_data.c | 365 ++++++++++++++++++++++++++++++++++++++++++++++-
  lib/ext2fs/mkdir.c       |  19 ++-
- 7 files changed, 424 insertions(+), 11 deletions(-)
+ 7 files changed, 422 insertions(+), 12 deletions(-)
 
 diff --git a/debugfs/debugfs.c b/debugfs/debugfs.c
 index 969dbe0..bf0ddf1 100644
@@ -141,10 +141,10 @@ index 4a40c8c..965b681 100644
  		if (!s->here->e_value_block && s->here->e_value_size) {
  			char *first_val = (char *) s->base + min_offs;
 diff --git a/lib/ext2fs/inline_data.c b/lib/ext2fs/inline_data.c
-index f7eea7d..209a203 100644
+index f7eea7d..2803019 100644
 --- a/lib/ext2fs/inline_data.c
 +++ b/lib/ext2fs/inline_data.c
-@@ -25,6 +25,17 @@ static int ext2fs_iget_extra_inode(ext2_filsys fs, struct ext2_inode_large *inod
+@@ -25,11 +25,21 @@ static int ext2fs_iget_extra_inode(ext2_filsys fs, struct ext2_inode_large *inod
  				    struct inline_data *data);
  static void *ext2fs_get_inline_xattr_pos(struct ext2_inode_large *inode,
  					 struct inline_data *data);
@@ -162,7 +162,12 @@ index f7eea7d..209a203 100644
  
  static int ext2fs_iget_extra_inode(ext2_filsys fs, struct ext2_inode_large *inode,
  				    struct inline_data *data)
-@@ -68,6 +79,46 @@ static void *ext2fs_get_inline_xattr_pos(struct ext2_inode_large *inode,
+ {
+-	struct ext2_ext_attr_ibody_header *header;
+ 	struct ext2_ext_attr_search s = {
+ 		.not_found = -1,
+ 	};
+@@ -68,6 +78,46 @@ static void *ext2fs_get_inline_xattr_pos(struct ext2_inode_large *inode,
  	return (void *) ((char *)IFIRST(header) + entry->e_value_offs);
  }
  
@@ -209,7 +214,7 @@ index f7eea7d..209a203 100644
  int ext2fs_inode_has_inline_data(ext2_filsys fs, ext2_ino_t ino)
  {
  	struct ext2_inode inode;
-@@ -80,6 +131,113 @@ int ext2fs_inode_has_inline_data(ext2_filsys fs, ext2_ino_t ino)
+@@ -80,6 +130,113 @@ int ext2fs_inode_has_inline_data(ext2_filsys fs, ext2_ino_t ino)
  	return (inode.i_flags & EXT4_INLINE_DATA_FL);
  }
  
@@ -323,7 +328,7 @@ index f7eea7d..209a203 100644
  int ext2fs_inline_data_iterate(ext2_filsys fs,
  			       ext2_ino_t ino,
  			       int flags,
-@@ -161,3 +319,211 @@ out:
+@@ -161,3 +318,209 @@ out:
  	ext2fs_free_mem(&inode);
  	return retval & BLOCK_ERROR ? ctx->errcode : 0;
  }
@@ -338,11 +343,9 @@ index f7eea7d..209a203 100644
 +	ext2_extent_handle_t handle;
 +	errcode_t retval;
 +	blk64_t blk;
-+	void *inline_start;
 +	char *backup_buf;
 +	char *blk_buf;
 +	unsigned int inline_size;
-+	int i, limit, r;
 +
 +	EXT2_CHECK_MAGIC(fs, EXT2_ET_MAGIC_EXT2FS_FILSYS);
 +
