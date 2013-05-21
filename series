@@ -19,5 +19,5 @@ e2fsck-check-inline_data-in-pass2
 e2fsck-check-inline_data-in-pass3
 tests-change-result-in-f_bad_disconnected_inode
 mke2fs-enable-inline_data-feature-on-ext4dev-filesystem
-libext2fs-fix-some-warnings-from-make-gcc-wall
+disable-punch-for-inline-data
 libext2fs-add-a-unit-test-for-inline-data
