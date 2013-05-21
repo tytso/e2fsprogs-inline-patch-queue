@@ -38,7 +38,7 @@ index a299561..8c30b48 100644
 +
  	end
 diff --git a/lib/ext2fs/ext2fs.h b/lib/ext2fs/ext2fs.h
-index d29c763..3f5599b 100644
+index 9ee3925..a757058 100644
 --- a/lib/ext2fs/ext2fs.h
 +++ b/lib/ext2fs/ext2fs.h
 @@ -1364,6 +1364,13 @@ extern errcode_t ext2fs_inline_data_mkdir(ext2_filsys fs, ext2_ino_t parent,
@@ -100,7 +100,7 @@ index 1f7002c..d751666 100644
  		retval = sync_buffer_position(file);
  		if (retval)
 diff --git a/lib/ext2fs/inline_data.c b/lib/ext2fs/inline_data.c
-index 2803019..f1ca8b2 100644
+index 2779b70..1cc214a 100644
 --- a/lib/ext2fs/inline_data.c
 +++ b/lib/ext2fs/inline_data.c
 @@ -25,6 +25,8 @@ static int ext2fs_iget_extra_inode(ext2_filsys fs, struct ext2_inode_large *inod
@@ -198,7 +198,7 @@ index 2803019..f1ca8b2 100644
 +	struct ext2_ext_attr_ibody_header *header;
 +	struct inline_data data;
 +	errcode_t retval = 0;
-+	size_t free, min_offs;
++	size_t freesize, min_offs;
 +
 +	min_offs = EXT2_INODE_SIZE(fs->super) -
 +		   EXT2_GOOD_OLD_INODE_SIZE -
@@ -216,7 +216,7 @@ index 2803019..f1ca8b2 100644
 +				min_offs = offs;
 +		}
 +	}
-+	free = min_offs -
++	freesize = min_offs -
 +		((char *)entry - (char *)IFIRST(header)) - sizeof(__u32);
 +
 +	/*
@@ -230,19 +230,19 @@ index 2803019..f1ca8b2 100644
 +	if (data.inline_off) {
 +		entry = (struct ext2_ext_attr_entry *)
 +			((char *)inode + data.inline_off);
-+		free += ext2fs_le32_to_cpu(entry->e_value_size);
++		freesize += ext2fs_le32_to_cpu(entry->e_value_size);
 +		goto out;
 +	}
 +
-+	free -= EXT2_EXT_ATTR_LEN(strlen(EXT4_EXT_ATTR_SYSTEM_DATA));
++	freesize -= EXT2_EXT_ATTR_LEN(strlen(EXT4_EXT_ATTR_SYSTEM_DATA));
 +
-+	if (free > EXT2_EXT_ATTR_ROUND)
-+		free = EXT2_EXT_ATTR_SIZE(free - EXT2_EXT_ATTR_ROUND);
++	if (freesize > EXT2_EXT_ATTR_ROUND)
++		freesize = EXT2_EXT_ATTR_SIZE(freesize - EXT2_EXT_ATTR_ROUND);
 +	else
-+		free = 0;
++		freesize = 0;
 +
 +out:
-+	return free + EXT4_MIN_INLINE_DATA_SIZE;
++	return freesize + EXT4_MIN_INLINE_DATA_SIZE;
 +}
 +
 +errcode_t ext2fs_try_to_write_inline_data(ext2_filsys fs, ext2_ino_t ino,

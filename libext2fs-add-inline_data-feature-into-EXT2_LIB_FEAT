@@ -7,12 +7,11 @@ Let e2fsprogs support inline_data feature.
 Signed-off-by: Zheng Liu <wenqing.lz@taobao.com>
 Signed-off-by: Theodore Ts'o <tytso@mit.edu>
 ---
- lib/ext2fs/ext2fs.h      | 3 ++-
- lib/ext2fs/inline_data.c | 2 +-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ lib/ext2fs/ext2fs.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/lib/ext2fs/ext2fs.h b/lib/ext2fs/ext2fs.h
-index 8fea664..cd4e8b7 100644
+index 7d9c13a..1741ed7 100644
 --- a/lib/ext2fs/ext2fs.h
 +++ b/lib/ext2fs/ext2fs.h
 @@ -588,7 +588,8 @@ typedef struct ext2_icount *ext2_icount_t;
@@ -25,16 +24,3 @@ index 8fea664..cd4e8b7 100644
  
  #define EXT2_LIB_FEATURE_RO_COMPAT_SUPP	(EXT2_FEATURE_RO_COMPAT_SPARSE_SUPER|\
  					 EXT4_FEATURE_RO_COMPAT_HUGE_FILE|\
-diff --git a/lib/ext2fs/inline_data.c b/lib/ext2fs/inline_data.c
-index 636cfd3..ae37836 100644
---- a/lib/ext2fs/inline_data.c
-+++ b/lib/ext2fs/inline_data.c
-@@ -483,7 +483,7 @@ errcode_t ext2fs_punch_inline_data(ext2_filsys fs, ext2_ino_t ino,
- 	struct inline_data data;
- 	errcode_t retval = 0;
- 	void *value;
--	int inline_size, value_len;
-+	unsigned int inline_size, value_len;
- 
- 	retval = ext2fs_get_mem(EXT2_INODE_SIZE(fs->super), &inode);
- 	if (retval)

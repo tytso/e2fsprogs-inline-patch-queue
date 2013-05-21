@@ -82,14 +82,14 @@ index 22558d6..b5e790b 100644
  				       0, expand_dir_proc, &es);
  
 diff --git a/lib/ext2fs/ext2fs.h b/lib/ext2fs/ext2fs.h
-index 9787298..d29c763 100644
+index 9787298..9ee3925 100644
 --- a/lib/ext2fs/ext2fs.h
 +++ b/lib/ext2fs/ext2fs.h
 @@ -1348,6 +1348,7 @@ extern errcode_t ext2fs_get_memalign(unsigned long size,
  
  /* inline_data.c */
  extern int ext2fs_inode_has_inline_data(ext2_filsys fs, ext2_ino_t ino);
-+extern int ext2fs_get_inline_data_size(ext2_filsys fs, ext2_ino_t ino);
++extern unsigned int ext2fs_get_inline_data_size(ext2_filsys fs, ext2_ino_t ino);
  extern int ext2fs_inline_data_iterate(ext2_filsys fs,
  				      ext2_ino_t ino,
  				      int flags,
@@ -141,7 +141,7 @@ index 4a40c8c..965b681 100644
  		if (!s->here->e_value_block && s->here->e_value_size) {
  			char *first_val = (char *) s->base + min_offs;
 diff --git a/lib/ext2fs/inline_data.c b/lib/ext2fs/inline_data.c
-index f7eea7d..2803019 100644
+index f7eea7d..2779b70 100644
 --- a/lib/ext2fs/inline_data.c
 +++ b/lib/ext2fs/inline_data.c
 @@ -25,11 +25,21 @@ static int ext2fs_iget_extra_inode(ext2_filsys fs, struct ext2_inode_large *inod
@@ -218,12 +218,12 @@ index f7eea7d..2803019 100644
  	return (inode.i_flags & EXT4_INLINE_DATA_FL);
  }
  
-+int ext2fs_get_inline_data_size(ext2_filsys fs, ext2_ino_t ino)
++unsigned int ext2fs_get_inline_data_size(ext2_filsys fs, ext2_ino_t ino)
 +{
 +	struct inline_data data;
 +	struct ext2_inode_large *inode;
 +	errcode_t retval = 0;
-+	int inline_size = 0;
++	unsigned int inline_size = 0;
 +
 +	if (!ext2fs_inode_has_inline_data(fs, ino))
 +		return 0;
